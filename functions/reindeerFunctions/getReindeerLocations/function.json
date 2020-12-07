@@ -1,0 +1,28 @@
+{
+  "bindings": [
+    {
+      "authLevel": "function",
+      "type": "httpTrigger",
+      "direction": "in",
+      "name": "req",
+      "methods": [
+        "get",
+        "post"
+      ]
+    },
+    {
+      "type": "http",
+      "direction": "out",
+      "name": "res"
+    },
+    {
+      "type": "cosmosDB",
+      "name": "locationStorage",
+      "databaseName": "reindeer-locations",
+      "collectionName": "locations",
+      "partitionKey": "/devices",
+      "direction": "in",
+      "connectionStringSetting": "reindeerlocations_DOCUMENTDB"
+    }
+  ]
+}
