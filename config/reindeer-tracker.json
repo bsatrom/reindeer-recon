@@ -1,11 +1,14 @@
 // Preform a factory reset
 {"req":"card.restore","delete":true}
 // Set the ProductUID and Serial Number for each reindeer
-{"req":"hub.set","product":"com.blues.bsatrom:reindeer_tracker","sn":"dasher"}
+{"req":"hub.set","product":"com.blues.bsatrom:reindeer_tracker","sn":"dancer"}
 // Configure Sync Periods with 15-min outbound and twice-a-day inbound
 {"req":"hub.set","mode":"periodic","align":true,"inbound":720,"outbound":15}
-// Hourly Sampling of Location
-{"req":"card.location.mode","mode":"periodic","seconds":300}
+// perform fine-grained location tracking when we're moving
+{"req":"card.location.mode","mode":"periodic","seconds":5}
+// set sensitivity (1-5) up one notch from the default of 1
+{"req":"card.motion.mode","sensitivity":2}
+{"req":"env.default","name":"_log","text":"on"}
 # Track location with daily heartbeat
 {"req":"card.location.track","start":true,"heartbeat":true,"hours":24}
 # unless overridden in Notehub, log network registration failures
