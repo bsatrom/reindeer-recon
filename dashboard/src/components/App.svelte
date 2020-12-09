@@ -4,7 +4,7 @@
 
 <main>
 	<img src="assets/reindeer.svg" alt="reindeer leaping" />
-	<h1>Reindeer Tracker 2020</h1>
+	<h1>Reindeer Recon 2020</h1>
 </main>
 
 <Map />

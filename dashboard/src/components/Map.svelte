@@ -12,14 +12,6 @@
     position: absolute;
     width: 20px;
   }
-
-  .dasherMarker {
-    display: block;
-    border: none;
-    border-radius: 50%;
-    cursor: pointer;
-    padding: 0;
-  }
 </style>
 
 <script>
@@ -32,17 +24,19 @@
   let startingCoords = [135, 90];
   let homeCoords = [-97.616640625, 30.5193875];
   let reindeerLocations = {};
-  let dasherRoute;
-  let dasherStartPoint;
 
   let mapRef;
 
   // Create Icons for Each Reindeer
   const dasherIcon = document.createElement('div');
-  dasherIcon.className = 'reindeerMarker';
   dasherIcon.style.backgroundImage = 'url(assets/dasher.png)';
   dasherIcon.style.width = '72px';
   dasherIcon.style.height = '72px';
+
+  const cometIcon = document.createElement('div');
+  cometIcon.style.backgroundImage = 'url(assets/comet.png)';
+  cometIcon.style.width = '72px';
+  cometIcon.style.height = '72px';
 
   onMount(async () => {
     mapboxgl.accessToken = accessToken;
@@ -56,7 +50,9 @@
       .reduce((previous, next) => {
         previous[next.reindeer] = previous[next.reindeer] || [];
 
-        previous[next.reindeer].push([next.lon, next.lat]);
+        if (next.lon !== undefined && next.lat !== undefined) {
+          previous[next.reindeer].push([next.lon, next.lat]);
+        }
 
         return previous;
       }, Object.create(null));
@@ -66,32 +62,10 @@
     reindeerLocations = reindeerPoints;
 
     // Route Data for each Reindeer
-    dasherRoute = {
-      'type': 'FeatureCollection',
-      'features': [
-        {
-          'type': 'Feature',
-          'geometry': {
-            'type': 'LineString',
-            'coordinates': reindeerLocations.dasher
-          }
-        }
-      ]
-    };
-
-    dasherStartPoint = {
-      'type': 'FeatureCollection',
-      'features': [
-        {
-          'type': 'Feature',
-          'properties': {},
-          'geometry': {
-            'type': 'Point',
-            'coordinates': reindeerLocations.dasher[0]
-          }
-        }
-      ]
-    };
+    const dasherRoute = createRoute(reindeerLocations.dasher);
+    const dasherStartPoint = createStartPoint(reindeerLocations.dasher[0]);
+    const cometRoute = createRoute(reindeerLocations.comet);
+    const cometStartPoint = createStartPoint(reindeerLocations.comet[0]);
 
     mapRef = new mapboxgl.Map({
       container: 'map',
@@ -104,6 +78,7 @@
 
     // Create a marker for our reindeer
     const dasherMarker = new mapboxgl.Marker(dasherIcon);
+    const cometMarker = new mapboxgl.Marker(cometIcon);
 
     mapRef.on('load', async function() {
       mapRef.flyTo({center:homeCoords, zoom: 13});
@@ -111,60 +86,68 @@
       await sleep(4000);
 
       addRouteToMap('dasher', '#b30000', mapRef, reindeerLocations.dasher);
+      addRouteToMap('comet', '#fd9400', mapRef, reindeerLocations.comet);
 
-      // Add Dasher's Initial position to the map
+      // Add Initial Reindeer positions to map
       dasherMarker.setLngLat(reindeerLocations.dasher[0]);
       dasherMarker.addTo(mapRef);
+      cometMarker.setLngLat(reindeerLocations.comet[0]);
+      cometMarker.addTo(mapRef);
 
-      // Set variables
-      const numLocations = reindeerLocations.dasher.length;
-      let coordsIndex = 0;
-      let countUp = true;
-      let currentLine = turf.lineString([reindeerLocations.dasher[coordsIndex],
-        reindeerLocations.dasher[coordsIndex+1]
-      ]);
+      // Initialize the state for each reindeer via an object that
+      // Will be updated with each animation frame
+      const dasherState = initializeReindeerState(reindeerLocations.dasher, dasherMarker);
+      const cometState = initializeReindeerState(reindeerLocations.comet, cometMarker);
 
-      // Calculate the distance between the first two points
-      let pointDistance = turf.lineDistance(currentLine, 'kilometers');
-      let frames = getFramerate(pointDistance);
-      let currentLineIndex = 0;
+      const reindeerStates = {
+        dasherState,
+        cometState
+      };
+      console.log(reindeerStates);
 
       // Start animation
       const animateReindeer = () => {
-        if (pointDistance !== 0) {
-          let deerpoint = turf.along(currentLine,
-            (pointDistance / frames) * currentLineIndex, 'kilometers');
-          dasherMarker.setLngLat(deerpoint.geometry.coordinates);
-          dasherMarker.addTo(mapRef);
-        }
+        for (const reindeer in reindeerStates) {
+          const ds = reindeerStates[reindeer];
 
-        currentLineIndex++;
-
-        if (currentLineIndex > frames) {
-          if (countUp) {
-            if (coordsIndex+1 == numLocations) {
-              countUp = false;
-              coordsIndex--;
-            } else {
-              coordsIndex++;
-            }
-          } else {
-            if (coordsIndex == 0) {
-              countUp = true;
-              coordsIndex++;
-            } else {
-              coordsIndex--;
-            }
+          if (ds.pointDistance !== 0) {
+            let deerpoint = turf.along(
+              ds.currentLine,
+              (ds.pointDistance / ds.frames) * ds.currentLineIndex,
+              'kilometers'
+            );
+            ds.marker.setLngLat(deerpoint.geometry.coordinates);
+            ds.marker.addTo(mapRef);
           }
 
-          currentLine = turf.lineString([
-            reindeerLocations.dasher[countUp ? coordsIndex-1 : coordsIndex+1],
-            reindeerLocations.dasher[coordsIndex]
-          ]);
-          pointDistance = turf.lineDistance(currentLine, 'kilometers');
-          frames = getFramerate(pointDistance);
+          ds.currentLineIndex++;
 
-          currentLineIndex = 0;
+          if (ds.currentLineIndex > ds.frames) {
+            if (ds.countUp) {
+              if (ds.coordsIndex+1 == ds.numberOfLocations) {
+                ds.countUp = false;
+                ds.coordsIndex--;
+              } else {
+                ds.coordsIndex++;
+              }
+            } else {
+              if (ds.coordsIndex == 0) {
+                ds.countUp = true;
+                ds.coordsIndex++;
+              } else {
+                ds.coordsIndex--;
+              }
+            }
+
+            ds.currentLine = turf.lineString([
+              ds.locations[ds.countUp ? ds.coordsIndex-1 : ds.coordsIndex+1],
+              ds.locations[ds.coordsIndex]
+            ]);
+            ds.pointDistance = turf.lineDistance(ds.currentLine, 'kilometers');
+            ds.frames = getFramerate(ds.pointDistance);
+
+            ds.currentLineIndex = 0;
+          }
         }
 
         requestAnimationFrame(animateReindeer);
@@ -189,9 +172,56 @@
   };
 
   const getFramerate = (pointDistance) => {
-    const distanceMultiplier = Math.round(pointDistance) > 0 ? Math.round(pointDistance) : 1;
+    const distanceMultiplier = Math.round(pointDistance) > 0 ? Math.round(pointDistance) : 0.25;
     return distanceMultiplier * 60;
-  }
+  };
+
+  const createRoute = (coords) =>  {
+    return {
+      'type': 'FeatureCollection',
+      'features': [
+        {
+          'type': 'Feature',
+          'geometry': {
+            'type': 'LineString',
+            'coordinates': coords
+          }
+        }
+      ]
+    }
+  };
+
+  const createStartPoint = (coords) => {
+    return {
+      'type': 'FeatureCollection',
+      'features': [
+        {
+          'type': 'Feature',
+          'properties': {},
+          'geometry': {
+            'type': 'Point',
+            'coordinates': coords
+          }
+        }
+      ]
+    }
+  };
+
+  const initializeReindeerState = (locations, marker) => {
+    const ds = {
+      locations,
+      marker,
+      numberOfLocations: locations.length,
+      coordsIndex: 0,
+      countUp: true,
+      currentLine: turf.lineString([locations[0], locations[1]]),
+      currentLineIndex: 0
+    };
+    ds.pointDistance = turf.lineDistance(ds.currentLine, 'kilometers');
+    ds.frames = getFramerate(ds.pointDistance);
+
+    return ds;
+  };
 
   const addRouteToMap = (reindeer, color, map, data) => {
     map.addSource(`${reindeer}_route`, {
