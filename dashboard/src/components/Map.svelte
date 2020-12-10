@@ -38,6 +38,11 @@
   cometIcon.style.width = '72px';
   cometIcon.style.height = '72px';
 
+  const vixenIcon = document.createElement('div');
+  vixenIcon.style.backgroundImage = 'url(assets/vixen.png)';
+  vixenIcon.style.width = '72px';
+  vixenIcon.style.height = '72px';
+
   onMount(async () => {
     mapboxgl.accessToken = accessToken;
 
@@ -66,6 +71,8 @@
     const dasherStartPoint = createStartPoint(reindeerLocations.dasher[0]);
     const cometRoute = createRoute(reindeerLocations.comet);
     const cometStartPoint = createStartPoint(reindeerLocations.comet[0]);
+    const vixenRoute = createRoute(reindeerLocations.vixen);
+    const vixenStartPoint = createStartPoint(reindeerLocations.vixen[0]);
 
     mapRef = new mapboxgl.Map({
       container: 'map',
@@ -79,6 +86,7 @@
     // Create a marker for our reindeer
     const dasherMarker = new mapboxgl.Marker(dasherIcon);
     const cometMarker = new mapboxgl.Marker(cometIcon);
+    const vixenMarker = new mapboxgl.Marker(vixenIcon);
 
     mapRef.on('load', async function() {
       mapRef.flyTo({center:homeCoords, zoom: 13});
@@ -87,21 +95,26 @@
 
       addRouteToMap('dasher', '#b30000', mapRef, reindeerLocations.dasher);
       addRouteToMap('comet', '#fd9400', mapRef, reindeerLocations.comet);
+      addRouteToMap('vixen', '#48bb00', mapRef, reindeerLocations.vixen);
 
       // Add Initial Reindeer positions to map
       dasherMarker.setLngLat(reindeerLocations.dasher[0]);
       dasherMarker.addTo(mapRef);
       cometMarker.setLngLat(reindeerLocations.comet[0]);
       cometMarker.addTo(mapRef);
+      vixenMarker.setLngLat(reindeerLocations.vixen[0]);
+      vixenMarker.addTo(mapRef);
 
       // Initialize the state for each reindeer via an object that
       // Will be updated with each animation frame
       const dasherState = initializeReindeerState(reindeerLocations.dasher, dasherMarker);
       const cometState = initializeReindeerState(reindeerLocations.comet, cometMarker);
+      const vixenState = initializeReindeerState(reindeerLocations.vixen, vixenMarker);
 
       const reindeerStates = {
         dasherState,
-        cometState
+        cometState,
+        vixenState
       };
       console.log(reindeerStates);
 
