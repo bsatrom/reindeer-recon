@@ -50,21 +50,9 @@
     const response = await fetch(`${apiUrl}?code=${apiKey}`);
     const data = await response.json();
 
-    const reindeerPoints = data
-      .sort((first, second) => first.capture_time - second.capture_time)
-      .reduce((previous, next) => {
-        previous[next.reindeer] = previous[next.reindeer] || [];
+    console.log(data);
 
-        if (next.lon !== undefined && next.lat !== undefined) {
-          previous[next.reindeer].push([next.lon, next.lat]);
-        }
-
-        return previous;
-      }, Object.create(null));
-
-    console.log(reindeerPoints);
-
-    reindeerLocations = reindeerPoints;
+    reindeerLocations = data;
 
     // Route Data for each Reindeer
     const dasherRoute = createRoute(reindeerLocations.dasher);
