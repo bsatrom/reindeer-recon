@@ -18,6 +18,36 @@
     margin: auto;
   }
 
+  .legend {
+    background-color: #fff;
+    border-radius: 6px;
+    bottom: 20px;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+    font: 12px/20px 'Helvetica Neue', Arial, Helvetica, sans-serif;
+    padding: 10px;
+    position: absolute;
+    right: 20px;
+    z-index: 1;
+  }
+
+  .legend h3 {
+    margin: 0 0 10px;
+  }
+
+  .legend div {
+    height: 32px;
+    line-height: 32px;
+    text-align: center;
+  }
+
+  .legend div span {
+    border-radius: 50%;
+    display: inline-block;
+    height: 32px;
+    margin-right: 5px;
+    width: 32px;
+    vertical-align: middle;
+  }
 </style>
 
 <script>
@@ -26,7 +56,7 @@
 
   import { onMount } from 'svelte';
   import { accessToken, apiKey, apiUrl } from './consts';
-  import { Avatar, Backdrop, Button, Spinner } from 'proi-ui';
+  import { Backdrop, Button, Spinner } from 'proi-ui';
 
   let startingCoords = [135, 90];
   let homeCoords = [-97.616640625, 30.5193875];
@@ -35,6 +65,7 @@
   let mapRef;
   let routesVisible = false;
   let backdropOpen = true;
+  let shuffleLocations = false;
 
   const createIcon = (iconName) => {
     const icon = document.createElement('div');
@@ -62,6 +93,13 @@
     console.log(data);
 
     reindeerLocations = data;
+
+    if (shuffleLocations) {
+      for (const reindeerName in reindeerLocations) {
+        const locations = reindeerLocations[reindeerName];
+        reindeerLocations[reindeerName] = shuffle(locations);
+      }
+    }
 
     // Route Data for each Reindeer
     const dasherRoute = createRoute(reindeerLocations.dasher);
@@ -144,6 +182,10 @@
               'kilometers'
             );
             ds.marker.setLngLat(deerpoint.geometry.coordinates);
+            /*ds.marker.setRotation(turf.bearing(
+              ds.locations[ds.coordsIndex-1],
+              ds.locations[ds.coordsIndex]
+            ));*/
             ds.marker.addTo(mapRef);
           }
 
@@ -189,7 +231,7 @@
 
   const getFramerate = (pointDistance) => {
     const distanceMultiplier = Math.round(pointDistance) > 0 ? Math.round(pointDistance) : 0.10;
-    return distanceMultiplier * 60;
+    return distanceMultiplier * 45;
   };
 
   const createRoute = (coords) =>  {
@@ -279,6 +321,25 @@
         mapRef.setLayoutProperty(route, 'visibility', 'visible');
       }
     });
+  };
+
+  const shuffle = (array) => {
+    var currentIndex = array.length, temporaryValue, randomIndex;
+
+    // While there remain elements to shuffle...
+    while (0 !== currentIndex) {
+
+      // Pick a remaining element...
+      randomIndex = Math.floor(Math.random() * currentIndex);
+      currentIndex -= 1;
+
+      // And swap it with the current element.
+      temporaryValue = array[currentIndex];
+      array[currentIndex] = array[randomIndex];
+      array[randomIndex] = temporaryValue;
+    }
+
+    return array;
   }
 </script>
 
@@ -289,3 +350,12 @@
   {routesVisible? "Hide" : "Show"} Routes
 </Button>
 <div id="map"></div>
+
+<div id="reindeer_legend" class="legend">
+  <h3>Agents</h3>
+  <div><span style="background-image: url(assets/dasher_sm.png)"></span>Dasher</div>
+  <div><span style="background-image: url(assets/dancer_sm.png)"></span>Dancer</div>
+  <div><span style="background-image: url(assets/prancer_sm.png)"></span>Prancer</div>
+  <div><span style="background-image: url(assets/vixen_sm.png)"></span>Vixen</div>
+  <div><span style="background-image: url(assets/comet_sm.png)"></span>Comet</div>
+</div>
