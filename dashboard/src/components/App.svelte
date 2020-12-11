@@ -12,7 +12,6 @@
 <style>
 	main {
 		text-align: center;
-		padding: .5em;
 		max-width: 240px;
 		margin: 0 auto;
 	}

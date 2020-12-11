@@ -2,6 +2,7 @@
   #map {
     width: 100%;
     height: 80%;
+    margin-top: 5px;
   }
 
   #map:before {
@@ -12,6 +13,11 @@
     position: absolute;
     width: 20px;
   }
+
+  :global(.sd-spinner-container) {
+    margin: auto;
+  }
+
 </style>
 
 <script>
@@ -20,6 +26,7 @@
 
   import { onMount } from 'svelte';
   import { accessToken, apiKey, apiUrl } from './consts';
+  import { Avatar, Backdrop, Button, Spinner } from 'proi-ui';
 
   let startingCoords = [135, 90];
   let homeCoords = [-97.616640625, 30.5193875];
@@ -27,6 +34,7 @@
 
   let mapRef;
   let routesVisible = false;
+  let backdropOpen = true;
 
   const createIcon = (iconName) => {
     const icon = document.createElement('div');
@@ -58,6 +66,8 @@
     // Route Data for each Reindeer
     const dasherRoute = createRoute(reindeerLocations.dasher);
     const dasherStartPoint = createStartPoint(reindeerLocations.dasher[0]);
+    const dancerRoute = createRoute(reindeerLocations.dancer);
+    const dancerStartPoint = createStartPoint(reindeerLocations.dancer[0]);
     const cometRoute = createRoute(reindeerLocations.comet);
     const cometStartPoint = createStartPoint(reindeerLocations.comet[0]);
     const vixenRoute = createRoute(reindeerLocations.vixen);
@@ -85,8 +95,10 @@
       mapRef.flyTo({center:homeCoords, zoom: 12.5});
 
       await sleep(4000);
+      backdropOpen = false;
 
       addRouteToMap('dasher', '#b30000', mapRef, reindeerLocations.dasher);
+      addRouteToMap('dancer', '#0a61bf', mapRef, reindeerLocations.dancer);
       addRouteToMap('comet', '#fd9400', mapRef, reindeerLocations.comet);
       addRouteToMap('vixen', '#48bb00', mapRef, reindeerLocations.vixen);
       addRouteToMap('prancer', '#7e00c0', mapRef, reindeerLocations.prancer);
@@ -94,6 +106,8 @@
       // Add Initial Reindeer positions to map
       dasherMarker.setLngLat(reindeerLocations.dasher[0]);
       dasherMarker.addTo(mapRef);
+      dancerMarker.setLngLat(reindeerLocations.dancer[0]);
+      dancerMarker.addTo(mapRef);
       cometMarker.setLngLat(reindeerLocations.comet[0]);
       cometMarker.addTo(mapRef);
       vixenMarker.setLngLat(reindeerLocations.vixen[0]);
@@ -104,12 +118,14 @@
       // Initialize the state for each reindeer via an object that
       // Will be updated with each animation frame
       const dasherState = initializeReindeerState(reindeerLocations.dasher, dasherMarker);
+      const dancerState = initializeReindeerState(reindeerLocations.dancer, dancerMarker);
       const cometState = initializeReindeerState(reindeerLocations.comet, cometMarker);
       const vixenState = initializeReindeerState(reindeerLocations.vixen, vixenMarker);
       const prancerState = initializeReindeerState(reindeerLocations.prancer, prancerMarker);
 
       const reindeerStates = {
         dasherState,
+        dancerState,
         cometState,
         vixenState,
         prancerState
@@ -253,8 +269,7 @@
   const toggleLayers = () => {
     routesVisible = !routesVisible;
 
-    // ['dasher_route', 'dancer_route', 'prancer_route', 'comet_route', 'vixen_route']
-    ['dasher_route', 'comet_route', 'vixen_route', 'prancer_route'].forEach(route => {
+    ['dasher_route', 'dancer_route', 'comet_route', 'vixen_route', 'prancer_route'].forEach(route => {
       const visibility =  mapRef.getLayoutProperty(route, 'visibility');
 
       // toggle layer visibility by changing the layout object's visibility property
@@ -267,7 +282,10 @@
   }
 </script>
 
-<button on:click="{toggleLayers}">
+<Backdrop open={backdropOpen}>
+  <Spinner labeled label="Gathering Intelligence..."/>
+</Backdrop>
+<Button status="primary" squared on:click="{toggleLayers}">
   {routesVisible? "Hide" : "Show"} Routes
-</button>
+</Button>
 <div id="map"></div>
