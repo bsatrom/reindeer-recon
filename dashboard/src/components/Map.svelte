@@ -215,10 +215,6 @@
       requestAnimationFrame(animateReindeer);
     });
 
-    var popup = new mapboxgl.Popup({ offset: 25 }).setText(
-      'The Satrom Boys'
-    );
-
     new mapboxgl.Marker()
       .setLngLat(homeCoords)
       .setPopup(popup)
