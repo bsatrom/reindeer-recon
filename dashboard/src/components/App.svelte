@@ -4,7 +4,12 @@
 
 <main>
 	<img src="assets/reindeer.svg" alt="reindeer leaping" />
-	<h1>Reindeer Recon 2020</h1>
+  <h1>Reindeer Recon 2020</h1>
+  <p>
+    A Holiday-themed Asset Tracking Project powered by the
+    <a href="https://blues.io" target="_new">Notecard</a>
+    and <a href="https://notehub.io" target="_new">Notehub.io</a>.
+  </p>
 </main>
 
 <Map />
@@ -53,8 +58,15 @@
 		color: #ff3e00;
 		text-transform: uppercase;
 		font-size: 3em;
-		font-weight: 100;
-	}
+    font-weight: 100;
+    font-family: 'Alata', sans-serif;
+    margin-bottom: 0;
+  }
+
+  p {
+    font-family: 'Alata', sans-serif;
+    margin-top: 0;
+  }
 
 	.snowflake {
 		color: #fff;

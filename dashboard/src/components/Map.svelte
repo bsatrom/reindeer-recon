@@ -21,12 +21,12 @@
   .legend {
     background-color: #fff;
     border-radius: 6px;
-    bottom: 20px;
+    top: 310px;
     box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
-    font: 12px/20px 'Helvetica Neue', Arial, Helvetica, sans-serif;
+    font: 12px/20px 'Alata', sans-serif;
     padding: 10px;
     position: absolute;
-    right: 20px;
+    left: 22px;
     z-index: 1;
   }
 
