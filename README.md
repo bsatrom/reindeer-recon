@@ -13,5 +13,5 @@ This repository contains the complete source for the Reindeer Recon project, inc
 ## Other Resources
 
 - [Blues Wireless Developer Portal](https://dev.blues.io)
-- [Blue Wireless Forum](https://discuss.blues.io)
+- [Blues Wireless Forum](https://discuss.blues.io)
 - [Blues Wireless on Twitter](https://twitter.com/blueswireless)
